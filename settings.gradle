@@ -1,1 +1,3 @@
-rootProject.name = 'Slate'
+rootProject.name = 'slate'
+
+include 'bukkit'

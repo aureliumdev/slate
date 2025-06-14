@@ -1,6 +1,9 @@
 package dev.aurelium.slate.builder;
 
 import dev.aurelium.slate.function.*;
+import dev.aurelium.slate.info.ItemInfo;
+import dev.aurelium.slate.info.MenuInfo;
+import dev.aurelium.slate.info.PlaceholderInfo;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -177,7 +180,7 @@ public class MenuBuilder {
     /**
      * Replaces any placeholder in the menu title with a value. The {@link ItemReplacer} passed
      * will be called for every placeholder detected in the title. The name of the placeholder being checked
-     * can be accessing using {@link dev.aurelium.slate.info.PlaceholderInfo#placeholder()}.
+     * can be accessing using {@link PlaceholderInfo#placeholder()}.
      *
      * @param replacer the replacer function, best used as a lambda
      * @return the menu builder
@@ -189,7 +192,7 @@ public class MenuBuilder {
 
     /**
      * Sets the page provider for the menu. The page provider computes the number of pages
-     * needed for the menu using a {@link dev.aurelium.slate.info.MenuInfo} context object.
+     * needed for the menu using a {@link MenuInfo} context object.
      *
      * @param provider the page provider
      * @return the menu builder
@@ -203,7 +206,7 @@ public class MenuBuilder {
      * Defines default properties for this menu. These properties are used when the menu is opened
      * through click actions defined in other menu files.
      *
-     * @param provider the {@link PropertyProvider}, a function that takes a {@link dev.aurelium.slate.info.MenuInfo}
+     * @param provider the {@link PropertyProvider}, a function that takes a {@link MenuInfo}
      *                 context object and returns a {@code Map<String, Object>} of properties
      * @return the menu builder
      */
@@ -217,9 +220,9 @@ public class MenuBuilder {
      * empty slots in the menu with a repeating item. In most cases, the fill item can be fully defined with the
      * fill section of the menu file. This should only be used if you need to modify the fill item in code.
      *
-     * @param modifier the item modifier, a function that takes a {@link dev.aurelium.slate.info.ItemInfo} context object
+     * @param modifier the item modifier, a function that takes a {@link ItemInfo} context object
      *                 and returns the {@link org.bukkit.inventory.ItemStack} that will be used as the fill item. The
-     *                 existing fill item defined from the menu file can be accessed using {@link dev.aurelium.slate.info.ItemInfo#item()}.
+     *                 existing fill item defined from the menu file can be accessed using {@link ItemInfo#item()}.
      * @return the menu builder
      */
     public MenuBuilder fillItem(ItemModifier modifier) {
@@ -230,7 +233,7 @@ public class MenuBuilder {
     /**
      * Defines a consumer to run when the menu is opened for a player.
      *
-     * @param listener the menu listener, a consumer that takes a {@link dev.aurelium.slate.info.MenuInfo} context object
+     * @param listener the menu listener, a consumer that takes a {@link MenuInfo} context object
      * @return the menu builder
      */
     public MenuBuilder onOpen(MenuListener listener) {
@@ -241,7 +244,7 @@ public class MenuBuilder {
     /**
      * Defines a consumer to run every tick a menu is open for a player.
      *
-     * @param listener the menu listener, a consumer that takes a {@link dev.aurelium.slate.info.MenuInfo} context object
+     * @param listener the menu listener, a consumer that takes a {@link MenuInfo} context object
      * @return the menu builder
      */
     public MenuBuilder onUpdate(MenuListener listener) {

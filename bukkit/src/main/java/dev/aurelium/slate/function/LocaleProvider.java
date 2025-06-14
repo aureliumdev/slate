@@ -1,6 +1,7 @@
 package dev.aurelium.slate.function;
 
 import org.bukkit.entity.Player;
+import dev.aurelium.slate.info.MenuInfo;
 
 import java.util.Locale;
 
@@ -8,7 +9,7 @@ import java.util.Locale;
 public interface LocaleProvider {
 
     /**
-     * Gets the locale of a player. This is used in context objects like {@link dev.aurelium.slate.info.MenuInfo}
+     * Gets the locale of a player. This is used in context objects like {@link MenuInfo}
      * to easily get the locale of a player.
      *
      * @param player the player

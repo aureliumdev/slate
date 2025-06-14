@@ -1,8 +1,8 @@
 package dev.aurelium.slate.builder;
 
 import dev.aurelium.slate.action.trigger.ClickTrigger;
-import dev.aurelium.slate.info.TemplateInfo;
 import dev.aurelium.slate.function.*;
+import dev.aurelium.slate.info.TemplateInfo;
 
 import java.util.HashMap;
 import java.util.HashSet;

@@ -1,4 +1,4 @@
-package com.archyx.slate.test;
+package dev.aurelium.slate.test;
 
 import dev.aurelium.slate.util.TextUtil;
 import org.junit.jupiter.api.Test;

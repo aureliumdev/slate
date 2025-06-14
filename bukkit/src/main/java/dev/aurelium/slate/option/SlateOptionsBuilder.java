@@ -1,5 +1,6 @@
 package dev.aurelium.slate.option;
 
+import dev.aurelium.slate.Slate;
 import dev.aurelium.slate.function.ItemMetaParser;
 import dev.aurelium.slate.item.provider.KeyedItemProvider;
 import dev.aurelium.slate.util.Validate;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Builder for creating {@link SlateOptions} to pass to the {@link dev.aurelium.slate.Slate} constructor.
+ * Builder for creating {@link SlateOptions} to pass to the {@link Slate} constructor.
  */
 public class SlateOptionsBuilder {
 

@@ -29,7 +29,6 @@ repositories {
 
 dependencies {
     api("org.spongepowered:configurate-yaml:4.2.0")
-    api("net.kyori:adventure-text-minimessage:4.16.0")
     api("net.kyori:adventure-platform-bukkit:4.3.2")
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
     compileOnly("me.clip:placeholderapi:2.11.6")

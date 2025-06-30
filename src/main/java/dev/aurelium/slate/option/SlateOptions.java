@@ -13,7 +13,8 @@ public record SlateOptions(
         int loreWrappingWidth,
         KeyedItemProvider keyedItemProvider,
         Map<String, ItemMetaParser> itemMetaParsers,
-        boolean removalProtection
+        boolean removalProtection,
+        boolean isMock
 ) {
 
     public static SlateOptionsBuilder builder() {

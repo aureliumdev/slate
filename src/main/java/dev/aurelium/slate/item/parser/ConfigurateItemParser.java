@@ -119,7 +119,7 @@ public class ConfigurateItemParser {
             List<String> flags = section.node("flags").getList(String.class, new ArrayList<>());
             for (String flagName : flags) {
                 ItemFlag itemFlag = ItemFlag.valueOf(flagName.toUpperCase(Locale.ROOT));
-                if (itemFlag == ItemFlag.HIDE_ATTRIBUTES && VersionUtil.isAtLeastVersion(20, 5)) {
+                if (itemFlag == ItemFlag.HIDE_ATTRIBUTES && VersionUtil.isAtLeastVersion(20, 5) && !slate.getOptions().isMock()) {
                     meta.setAttributeModifiers(Material.IRON_SWORD.getDefaultAttributeModifiers(EquipmentSlot.HAND));
                 }
                 meta.addItemFlags(itemFlag);

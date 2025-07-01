@@ -8,6 +8,9 @@ public class VersionUtil {
     public static final int MAJOR_VERSION = getMajorVersion(getVersionString(Bukkit.getBukkitVersion()));
     public static final int MINOR_VERSION = getMinorVersion(getVersionString(Bukkit.getBukkitVersion()));
 
+    private static final int FALLBACK_MAJOR_VERSION = 17;
+    private static final int FALLBACK_MINOR_VERSION = 0;
+
     public static boolean isAtLeastVersion(int version) {
         return MAJOR_VERSION >= version;
     }
@@ -23,28 +26,38 @@ public class VersionUtil {
     }
 
     public static int getMinorVersion(String version) {
-        if (version != null) {
-            int lastDot = version.lastIndexOf('.');
-            if (version.indexOf('.') != lastDot) {
-                return Integer.parseInt(version.substring(lastDot + 1));
-            } else {
-                return 0;
+        try {
+            if (version != null) {
+                int lastDot = version.lastIndexOf('.');
+                if (version.indexOf('.') != lastDot) {
+                    return Integer.parseInt(version.substring(lastDot + 1));
+                } else {
+                    return 0;
+                }
             }
+        } catch (Exception ignored) {
         }
-        throw new IllegalArgumentException("Failed to parse minor version from version string");
+        return FALLBACK_MINOR_VERSION;
     }
 
     public static int getMajorVersion(String version) {
-        if (version != null) {
-            int lastDot = version.lastIndexOf(".");
-            int firstDot = version.indexOf(".");
-            if (firstDot != lastDot) {
-                return Integer.parseInt(version.substring(firstDot + 1, lastDot));
-            } else {
-                return Integer.parseInt(version.substring(firstDot + 1));
+        try {
+            if (version != null) {
+                int lastDot = version.lastIndexOf(".");
+                int firstDot = version.indexOf(".");
+                if (firstDot != lastDot) {
+                    String sub = version.substring(firstDot + 1, lastDot);
+                    if (sub.contains(".")) { // In case there are extra dots at the end
+                        sub = sub.substring(0, sub.indexOf("."));
+                    }
+                    return Integer.parseInt(sub);
+                } else {
+                    return Integer.parseInt(version.substring(firstDot + 1));
+                }
             }
+        } catch (Exception ignored) {
         }
-        throw new IllegalArgumentException("Failed to parse major version from version string");
+        return FALLBACK_MAJOR_VERSION;
     }
 
     public static String getVersionString(@Nullable String version) {

@@ -118,7 +118,7 @@ public class ConfigurateItemParser {
             ItemMeta meta = getMeta(item);
             List<String> flags = section.node("flags").getList(String.class, new ArrayList<>());
             for (String flagName : flags) {
-                ItemFlag itemFlag = ItemFlag.valueOf(flagName.toUpperCase(Locale.ROOT));
+                ItemFlag itemFlag = ItemFlag.valueOf(substituteItemFlag(flagName.toUpperCase(Locale.ROOT)));
                 if (itemFlag == ItemFlag.HIDE_ATTRIBUTES && VersionUtil.isAtLeastVersion(20, 5) && !slate.getOptions().isMock()) {
                     meta.setAttributeModifiers(Material.IRON_SWORD.getDefaultAttributeModifiers(EquipmentSlot.HAND));
                 }
@@ -128,6 +128,15 @@ public class ConfigurateItemParser {
         } catch (SerializationException ignored) {
 
         }
+    }
+
+    private String substituteItemFlag(String name) {
+        if (VersionUtil.isAtLeastVersion(20, 5)) {
+            if (name.equals("HIDE_POTION_EFFECTS")) {
+                return "HIDE_ADDITIONAL_TOOLTIP";
+            }
+        }
+        return name;
     }
 
     private void parseGlow(ItemStack item) {

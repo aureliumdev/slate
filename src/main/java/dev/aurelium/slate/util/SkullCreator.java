@@ -13,6 +13,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Skull;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.profile.PlayerProfile;
 import org.bukkit.profile.PlayerTextures;
 import org.jetbrains.annotations.Nullable;
 
@@ -335,7 +336,12 @@ public class SkullCreator {
                         profile.setTextures(textures);
                         meta.setPlayerProfile(profile);
                     } else {
-                        var profile = Bukkit.createPlayerProfile(UUID.randomUUID());
+                        PlayerProfile profile;
+                        if (VersionUtil.isAtLeastVersion(21, 9)) {
+                            profile = Bukkit.createPlayerProfile(UUID.randomUUID(), "a");
+                        } else {
+                            profile = Bukkit.createPlayerProfile(UUID.randomUUID());
+                        }
                         profile.getTextures().setSkin(new URL(url));
                         meta.setOwnerProfile(profile);
                     }

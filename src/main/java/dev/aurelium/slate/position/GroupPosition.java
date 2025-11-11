@@ -11,7 +11,7 @@ import java.util.List;
 public record GroupPosition(ContextGroup group, int order) implements PositionProvider {
 
     @Override
-    public SlotPos getPosition(Collection<PositionProvider> positionData) {
+    public List<SlotPos> getPosition(Collection<PositionProvider> positionData) {
         // Get the group providers in the same group
         List<GroupPosition> providers = positionData.stream()
                 .filter(p -> p instanceof GroupPosition)
@@ -38,20 +38,29 @@ public record GroupPosition(ContextGroup group, int order) implements PositionPr
         if (group.getAlign() == GroupAlign.CENTER) {
             List<SlotPos> slots = groupUtil.getCenterSlots();
             if (index < slots.size()) {
-                return slots.get(index);
+                SlotPos slotPos = slots.get(index);
+                if (slotPos != null) {
+                    return List.of(slotPos);
+                }
             }
         } else if (group.getAlign() == GroupAlign.LEFT) {
             List<SlotPos> slots = groupUtil.getLeftSlots();
             if (index < slots.size()) {
-                return slots.get(index);
+                SlotPos slotPos = slots.get(index);
+                if (slotPos != null) {
+                    return List.of(slotPos);
+                }
             }
         } else if (group.getAlign() == GroupAlign.RIGHT) {
             List<SlotPos> slots = groupUtil.getRightSlots();
             if (index < slots.size()) {
-                return slots.get(index);
+                SlotPos slotPos = slots.get(index);
+                if (slotPos != null) {
+                    return List.of(slotPos);
+                }
             }
         }
-        return SlotPos.of(startRow, startCol);
+        return List.of(SlotPos.of(startRow, startCol));
     }
 
 

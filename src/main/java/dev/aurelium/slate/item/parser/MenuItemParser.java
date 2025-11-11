@@ -14,6 +14,7 @@ import dev.aurelium.slate.item.builder.MenuItemBuilder;
 import dev.aurelium.slate.menu.MenuLoader;
 import dev.aurelium.slate.position.FixedPosition;
 import dev.aurelium.slate.position.GroupPosition;
+import dev.aurelium.slate.position.MultiPosition;
 import dev.aurelium.slate.position.PositionProvider;
 import dev.aurelium.slate.util.MapParser;
 import org.bukkit.inventory.ItemStack;
@@ -52,17 +53,30 @@ public abstract class MenuItemParser extends MapParser {
     }
 
     protected @Nullable PositionProvider parsePosition(ConfigurationNode variantNode, Map<String, ContextGroup> groups) {
-        String positionString = variantNode.node("pos").getString();
-        if (positionString != null) {
-            return new FixedPosition(parsePosition(positionString));
-        } else if (!variantNode.node("group").virtual()) {
-            String groupName = variantNode.node("group").getString();
-            ContextGroup group = groups.get(groupName);
-            if (group == null) {
-                return new FixedPosition(parsePosition("0,0"));
-            } else {
-                int order = variantNode.node("order").getInt(1);
-                return new GroupPosition(group, order);
+        ConfigurationNode posNode = variantNode.node("pos");
+        if (posNode.isList()) {
+            List<SlotPos> positions = new ArrayList<>();
+            // Parse each position and add to list
+            for (ConfigurationNode entry : posNode.childrenList()) {
+                String positionString = entry.getString();
+                if (positionString == null) continue;
+
+                positions.add(parsePosition(positionString));
+            }
+            return new MultiPosition(positions);
+        } else {
+            String positionString = posNode.getString();
+            if (positionString != null) {
+                return new FixedPosition(parsePosition(positionString));
+            } else if (!variantNode.node("group").virtual()) {
+                String groupName = variantNode.node("group").getString();
+                ContextGroup group = groups.get(groupName);
+                if (group == null) {
+                    return new FixedPosition(parsePosition("0,0"));
+                } else {
+                    int order = variantNode.node("order").getInt(1);
+                    return new GroupPosition(group, order);
+                }
             }
         }
         return null;

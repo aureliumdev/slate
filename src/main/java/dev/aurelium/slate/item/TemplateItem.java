@@ -6,7 +6,6 @@ import dev.aurelium.slate.action.condition.Condition;
 import dev.aurelium.slate.action.condition.ItemConditions;
 import dev.aurelium.slate.action.trigger.ClickTrigger;
 import dev.aurelium.slate.context.ContextGroup;
-import dev.aurelium.slate.inv.content.SlotPos;
 import dev.aurelium.slate.lore.LoreLine;
 import dev.aurelium.slate.menu.MenuInventory;
 import dev.aurelium.slate.position.PositionProvider;
@@ -24,12 +23,12 @@ public class TemplateItem<C> extends MenuItem {
     private final Class<C> contextClass;
     private final TemplateData<C> data;
     private final ItemStack defaultBaseItem;
-    private final SlotPos defaultPosition;
+    private final PositionProvider defaultPosition;
     private final Map<String, ContextGroup> contextGroups;
 
     public TemplateItem(Slate slate, String name, Class<C> contextClass, TemplateData<C> data, ItemStack defaultBaseItem,
                         String displayName, List<LoreLine> lore, ItemActions actions, ItemConditions conditions,
-                        SlotPos defaultPosition, Map<String, Object> options, Map<String, ContextGroup> contextGroups) {
+                        PositionProvider defaultPosition, Map<String, Object> options, Map<String, ContextGroup> contextGroups) {
         super(slate, name, displayName, lore, actions, conditions, options);
         this.contextClass = contextClass;
         this.data = data;
@@ -76,7 +75,7 @@ public class TemplateItem<C> extends MenuItem {
     }
 
     @Nullable
-    public SlotPos getDefaultPosition() {
+    public PositionProvider getDefaultPosition() {
         return defaultPosition;
     }
 

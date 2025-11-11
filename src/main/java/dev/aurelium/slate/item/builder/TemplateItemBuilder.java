@@ -4,7 +4,6 @@ import dev.aurelium.slate.Slate;
 import dev.aurelium.slate.action.ItemActions;
 import dev.aurelium.slate.action.condition.ItemConditions;
 import dev.aurelium.slate.context.ContextGroup;
-import dev.aurelium.slate.inv.content.SlotPos;
 import dev.aurelium.slate.item.MenuItem;
 import dev.aurelium.slate.item.TemplateData;
 import dev.aurelium.slate.item.TemplateItem;
@@ -28,7 +27,7 @@ public class TemplateItemBuilder<C> extends MenuItemBuilder {
     private Map<C, ItemActions> contextualActions;
     private List<TemplateVariant<C>> variants;
     private ItemStack defaultBaseItem;
-    private SlotPos defaultPosition;
+    private PositionProvider defaultPosition;
     private Map<String, ContextGroup> contextGroups = new HashMap<>();
 
     public TemplateItemBuilder(Slate slate) {
@@ -60,7 +59,7 @@ public class TemplateItemBuilder<C> extends MenuItemBuilder {
         return this;
     }
 
-    public TemplateItemBuilder<C> defaultPosition(SlotPos defaultPosition) {
+    public TemplateItemBuilder<C> defaultPosition(PositionProvider defaultPosition) {
         this.defaultPosition = defaultPosition;
         return this;
     }

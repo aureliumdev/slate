@@ -100,10 +100,10 @@ public class TemplateItemParser<C> extends MenuItemParser {
         builder.contextualConditions(contextualConditions);
         builder.contextualActions(contextualActions);
 
-        String defaultPos = section.node("pos").getString();
-        if (positions.isEmpty() && defaultPos != null) {
-            SlotPos pos = parsePosition(defaultPos);
-            builder.defaultPosition(pos);
+        ConfigurationNode posNode = section.node("pos");
+        if (positions.isEmpty() && !posNode.empty()) {
+            PositionProvider provider = parsePosition(section, groups);
+            builder.defaultPosition(provider);
         }
 
         builder.baseItems(baseItems);

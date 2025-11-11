@@ -161,11 +161,10 @@ public class MenuInventory implements InventoryProvider {
     @Override
     public void update(Player player, InventoryContents contents) {
         // Decrement item cooldowns
-        for (int i = 0; i < toUpdate.size(); i++) {
-            ActiveItem activeItem = toUpdate.get(i);
+        for (ActiveItem activeItem : toUpdate) {
             int cooldown = activeItem.getCooldown();
             if (cooldown > 0) {
-                activeItem.setCooldown(cooldown- 1);
+                activeItem.setCooldown(cooldown - 1);
             }
         }
         builtMenu.updateListener().handle(menuInfo);
@@ -329,7 +328,7 @@ public class MenuInventory implements InventoryProvider {
         if (variant != null && variant.position() != null) {
             posProvider = variant.position();
         }
-        SlotPos pos = null;
+        List<SlotPos> pos = null;
         if (posProvider != null) {
             List<PositionProvider> providers = new ArrayList<>();
             for (C cont : contexts) {
@@ -340,11 +339,18 @@ public class MenuInventory implements InventoryProvider {
         } else {
             @Nullable SlotPos builtSlot = builtTemplate.slotProvider().get(new TemplateInfo<>(slate, player, activeMenu, itemStack, context));
             if (builtSlot != null) {
-                pos = builtSlot;
+                pos = List.of(builtSlot);
             }
         }
         if (pos == null) {
-            pos = item.getDefaultPosition();
+            PositionProvider def = item.getDefaultPosition();
+            if (def != null) {
+                List<PositionProvider> providers = new ArrayList<>();
+                for (C cont : contexts) {
+                    providers.add(item.getPosition(cont));
+                }
+                pos = def.getPosition(providers);
+            }
         }
         if (pos != null) {
             addTemplateItemToInventory(item, itemStack, pos, contents, player, builtTemplate, context);
@@ -407,7 +413,8 @@ public class MenuInventory implements InventoryProvider {
         }
     }
 
-    private <C> void addTemplateItemToInventory(TemplateItem<C> templateItem, ItemStack itemStack, SlotPos pos, InventoryContents contents, Player player, BuiltTemplate<C> builtTemplate, C context) {
+    private <C> void addTemplateItemToInventory(TemplateItem<C> templateItem, ItemStack itemStack, List<SlotPos> positions, InventoryContents contents, Player player, BuiltTemplate<C> builtTemplate, C context) {
+        for (SlotPos pos : positions) {
         contents.set(pos, ClickableItem.from(itemStack, c -> {
             if (!(c.getEvent() instanceof InventoryClickEvent event)) return;
 
@@ -420,6 +427,7 @@ public class MenuInventory implements InventoryProvider {
 
             executeClickActions(templateItem, player, contents, c, context); // Run custom click actions
         }));
+        }
     }
 
     private boolean isOnCooldown(MenuItem menuItem) {

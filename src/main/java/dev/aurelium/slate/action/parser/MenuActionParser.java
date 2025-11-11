@@ -27,28 +27,26 @@ public class MenuActionParser extends ActionParser {
         return new MenuAction(slate, actionType, menuName, getProperties(menuName, config));
     }
 
-    private Map<String, Object> getProperties(String menuName, ConfigurationNode config) {
+    public Map<String, Object> getProperties(String menuName, ConfigurationNode config) {
         ConfigurationNode propertiesConfig = config.node("properties");
         Map<String, Object> properties = new HashMap<>();
-        if (propertiesConfig != null) {
-            for (Object keyObj : propertiesConfig.childrenMap().keySet()) {
-                String key = String.valueOf(keyObj);
-                Object valueObj = propertiesConfig.node(keyObj).raw();
-                if (valueObj instanceof String value) {
-                    if (value.contains(":")) { // Parse custom object
-                        String type = TextUtil.substringBefore(value, ":");
-                        value = TextUtil.substringAfter(value, ":");
-                        // Get context provider from type
-                        ContextProvider<?> contextProvider = slate.getContextManager().getContextProvider(type);
-                        if (contextProvider != null) {
-                            properties.put(key, contextProvider.parse(menuName, value)); // Add the parsed object
-                        }
-                    } else {
-                        properties.put(key, value);
+        for (Object keyObj : propertiesConfig.childrenMap().keySet()) {
+            String key = String.valueOf(keyObj);
+            Object valueObj = propertiesConfig.node(keyObj).raw();
+            if (valueObj instanceof String value) {
+                if (value.contains(":")) { // Parse custom object
+                    String type = TextUtil.substringBefore(value, ":");
+                    value = TextUtil.substringAfter(value, ":");
+                    // Get context provider from type
+                    ContextProvider<?> contextProvider = slate.getContextManager().getContextProvider(type);
+                    if (contextProvider != null) {
+                        properties.put(key, contextProvider.parse(menuName, value)); // Add the parsed object
                     }
                 } else {
-                    properties.put(key, valueObj);
+                    properties.put(key, value);
                 }
+            } else {
+                properties.put(key, valueObj);
             }
         }
         return properties;

@@ -63,6 +63,10 @@ public class TemplateItem<C> extends MenuItem {
         return data.actions().get(context);
     }
 
+    public List<TemplateVariant<C>> getVariants() {
+        return data.variants();
+    }
+
     @Nullable
     public ItemStack getDefaultBaseItem() {
         if (defaultBaseItem != null) {

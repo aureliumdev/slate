@@ -44,6 +44,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.Map.Entry;
 
 public class MenuInventory implements InventoryProvider {
 
@@ -237,10 +238,43 @@ public class MenuInventory implements InventoryProvider {
         }
     }
 
+    private <C> @Nullable TemplateVariant<C> getVariant(TemplateItem<C> item, C context, ActiveMenu menu) {
+        for (TemplateVariant<C> variant : item.getVariants()) {
+            if (!variant.contextFilters().isEmpty() && !variant.contextFilters().contains(context)) {
+                continue;
+            }
+
+            if (!variant.propertyFilters().isEmpty()) {
+                boolean passes = true;
+                for (Entry<String, Object> entry : variant.propertyFilters().entrySet()) {
+                    Object propValue = menu.getProperties().get(entry.getKey());
+                    if (propValue == null) {
+                        passes = false;
+                        break;
+                    }
+                    if (!propValue.equals(entry.getValue())) {
+                        passes = false;
+                        break;
+                    }
+                }
+                if (!passes) {
+                    continue;
+                }
+            }
+
+            return variant;
+        }
+        return null;
+    }
+
     private <C> void addContextItem(InventoryContents contents, Player player, C context, TemplateItem<C> item, BuiltTemplate<C> builtTemplate, Set<C> contexts) {
+        TemplateVariant<C> variant = getVariant(item, context, activeMenu);
         ItemStack itemStack = item.getBaseItems().get(context); // Get a context-specific base item
         if (itemStack == null) {
             itemStack = item.getDefaultBaseItem(); // Otherwise use default base item
+        }
+        if (variant != null && variant.baseItem() != null) {
+            itemStack = variant.baseItem();
         }
         if (itemStack != null) {
             itemStack = itemStack.clone();
@@ -256,10 +290,13 @@ public class MenuInventory implements InventoryProvider {
 
         ItemMeta meta = itemStack.getItemMeta();
         if (meta != null) {
-            setContextMeta(player, context, item, builtTemplate, meta, itemStack);
+            setContextMeta(player, context, item, builtTemplate, meta, itemStack, variant);
         }
         // Add item to inventory
         PositionProvider posProvider = item.getPosition(context);
+        if (variant != null && variant.position() != null) {
+            posProvider = variant.position();
+        }
         SlotPos pos = null;
         if (posProvider != null) {
             List<PositionProvider> providers = new ArrayList<>();
@@ -282,8 +319,11 @@ public class MenuInventory implements InventoryProvider {
         }
     }
 
-    private <C> void setContextMeta(Player player, C context, TemplateItem<C> item, BuiltTemplate<C> builtTemplate, ItemMeta meta, ItemStack itemStack) {
+    private <C> void setContextMeta(Player player, C context, TemplateItem<C> item, BuiltTemplate<C> builtTemplate, ItemMeta meta, ItemStack itemStack, @Nullable TemplateVariant<C> variant) {
         String displayName = item.getActiveDisplayName(context); // Get the context-specific display name, or default if not defined
+        if (variant != null && variant.displayName() != null) {
+            displayName = variant.displayName();
+        }
         if (displayName != null) {
             // BuiltTemplate replacers
             displayName = builtTemplate.applyReplacers(displayName, slate, player, activeMenu, PlaceholderType.DISPLAY_NAME, context);
@@ -294,6 +334,9 @@ public class MenuInventory implements InventoryProvider {
             setDisplayName(meta, tf.toComponent(displayName));
         }
         List<LoreLine> loreLines = item.getActiveLore(context);
+        if (variant != null && !variant.lore().isEmpty()) {
+            loreLines = variant.lore();
+        }
         if (loreLines != null) {
             setLore(meta, loreInterpreter.interpretLore(loreLines, player, activeMenu, builtTemplate, item, context));
         }

@@ -8,6 +8,7 @@ import dev.aurelium.slate.inv.content.SlotPos;
 import dev.aurelium.slate.item.MenuItem;
 import dev.aurelium.slate.item.TemplateData;
 import dev.aurelium.slate.item.TemplateItem;
+import dev.aurelium.slate.item.TemplateVariant;
 import dev.aurelium.slate.lore.LoreLine;
 import dev.aurelium.slate.position.PositionProvider;
 import org.bukkit.inventory.ItemStack;
@@ -25,6 +26,7 @@ public class TemplateItemBuilder<C> extends MenuItemBuilder {
     private Map<C, List<LoreLine>> contextualLore;
     private Map<C, ItemConditions> contextualConditions;
     private Map<C, ItemActions> contextualActions;
+    private List<TemplateVariant<C>> variants;
     private ItemStack defaultBaseItem;
     private SlotPos defaultPosition;
     private Map<String, ContextGroup> contextGroups = new HashMap<>();
@@ -35,6 +37,11 @@ public class TemplateItemBuilder<C> extends MenuItemBuilder {
 
     public TemplateItemBuilder<C> contextClass(Class<C> contextClass) {
         this.contextClass = contextClass;
+        return this;
+    }
+
+    public TemplateItemBuilder<C> variants(List<TemplateVariant<C>> variants) {
+        this.variants = variants;
         return this;
     }
 
@@ -86,7 +93,7 @@ public class TemplateItemBuilder<C> extends MenuItemBuilder {
     @Override
     public MenuItem build() {
         TemplateData<C> templateData = new TemplateData<>(positions, baseItems, contextualDisplayNames, contextualLore,
-                contextualConditions, contextualActions);
+                contextualConditions, contextualActions, variants);
 
         return new TemplateItem<>(slate, name, contextClass, templateData, defaultBaseItem, displayName, lore,
                  actions, conditions, defaultPosition, options, contextGroups);

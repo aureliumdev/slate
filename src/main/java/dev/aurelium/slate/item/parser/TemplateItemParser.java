@@ -3,11 +3,13 @@ package dev.aurelium.slate.item.parser;
 import dev.aurelium.slate.Slate;
 import dev.aurelium.slate.action.ItemActions;
 import dev.aurelium.slate.action.condition.ItemConditions;
+import dev.aurelium.slate.action.parser.MenuActionParser;
 import dev.aurelium.slate.context.ContextGroup;
 import dev.aurelium.slate.context.ContextProvider;
 import dev.aurelium.slate.context.GroupAlign;
 import dev.aurelium.slate.inv.content.SlotPos;
 import dev.aurelium.slate.item.MenuItem;
+import dev.aurelium.slate.item.TemplateVariant;
 import dev.aurelium.slate.item.builder.TemplateItemBuilder;
 import dev.aurelium.slate.lore.LoreLine;
 import dev.aurelium.slate.position.FixedPosition;
@@ -106,6 +108,7 @@ public class TemplateItemParser<C> extends MenuItemParser {
 
         builder.baseItems(baseItems);
         builder.positions(positions);
+        builder.variants(parseVariants(section, menuName, groups));
 
         // Parse default base item if exists
         if (!section.node("material").virtual() || !section.node("key").virtual()) {
@@ -115,6 +118,54 @@ public class TemplateItemParser<C> extends MenuItemParser {
         parseCommonOptions(builder, section, menuName);
 
         return builder.build();
+    }
+
+    private List<TemplateVariant<C>> parseVariants(ConfigurationNode section, String menuName, Map<String, ContextGroup> groups) {
+        List<TemplateVariant<C>> variants = new ArrayList<>();
+        for (ConfigurationNode variantNode : section.node("variants").childrenList()) {
+            Set<C> contextFilters = new HashSet<>();
+            if (!variantNode.node("contexts").empty()) {
+                variantNode.node("contexts").childrenList().stream()
+                        .map(node -> contextProvider.parse(menuName, String.valueOf(node.raw())))
+                        .filter(Objects::nonNull)
+                        .forEach(contextFilters::add);
+            } else {
+                String key = variantNode.node("context").getString("");
+                C context = contextProvider.parse(menuName, key);
+                if (context != null) {
+                    contextFilters.add(context);
+                }
+            }
+
+            Map<String, Object> propertyFilters = new MenuActionParser(slate).getProperties(menuName, variantNode);
+
+            ItemStack baseItem = null;
+            if (!variantNode.node("material").virtual() || !variantNode.node("key").virtual()) {
+                baseItem = itemParser.parseBaseItem(variantNode);
+            }
+
+            PositionProvider positionProvider = null;
+            String positionString = variantNode.node("pos").getString();
+            if (positionString != null) {
+                positionProvider = new FixedPosition(parsePosition(positionString));
+            } else if (!variantNode.node("group").virtual()) {
+                String groupName = variantNode.node("group").getString();
+                ContextGroup group = groups.get(groupName);
+                if (group == null) {
+                    positionProvider = new FixedPosition(parsePosition("0,0"));
+                } else {
+                    int order = variantNode.node("order").getInt(1);
+                    positionProvider = new GroupPosition(group, order);
+                }
+            }
+
+            String displayName = itemParser.parseDisplayName(variantNode);
+            List<LoreLine> lore = itemParser.parseLore(variantNode);
+
+            TemplateVariant<C> variant = new TemplateVariant<>(contextFilters, propertyFilters, baseItem, positionProvider, displayName, lore);
+            variants.add(variant);
+        }
+        return variants;
     }
 
     private Map<String, ContextGroup> loadGroups(ConfigurationNode section) {

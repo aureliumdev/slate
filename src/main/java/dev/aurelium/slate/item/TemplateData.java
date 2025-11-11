@@ -15,9 +15,8 @@ public record TemplateData<C>(
         Map<C, String> displayNames,
         Map<C, List<LoreLine>> lore,
         Map<C, ItemConditions> conditions,
-        Map<C, ItemActions> actions
+        Map<C, ItemActions> actions,
+        List<TemplateVariant<C>> variants
 ) {
-
-
 
 }

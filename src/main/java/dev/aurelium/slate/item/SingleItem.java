@@ -14,12 +14,14 @@ public class SingleItem extends MenuItem {
 
     private final List<SlotPos> positions;
     private final ItemStack baseItem;
+    private final List<ItemVariant> variants;
 
     public SingleItem(Slate slate, String name, ItemStack baseItem, String displayName, List<LoreLine> lore,
-                      ItemActions actions, ItemConditions conditions, List<SlotPos> positions, Map<String, Object> options) {
+                      ItemActions actions, ItemConditions conditions, List<SlotPos> positions, Map<String, Object> options, List<ItemVariant> variants) {
         super(slate, name, displayName, lore, actions, conditions, options);
         this.positions = positions;
         this.baseItem = baseItem;
+        this.variants = variants;
     }
 
     public List<SlotPos> getPositions() {
@@ -30,4 +32,7 @@ public class SingleItem extends MenuItem {
         return baseItem.clone();
     }
 
+    public List<ItemVariant> getVariants() {
+        return variants;
+    }
 }

@@ -7,11 +7,17 @@ import dev.aurelium.slate.action.condition.Condition;
 import dev.aurelium.slate.action.condition.ConditionParser;
 import dev.aurelium.slate.action.condition.ItemConditions;
 import dev.aurelium.slate.action.trigger.ClickTrigger;
+import dev.aurelium.slate.context.ContextGroup;
 import dev.aurelium.slate.inv.content.SlotPos;
 import dev.aurelium.slate.item.MenuItem;
 import dev.aurelium.slate.item.builder.MenuItemBuilder;
 import dev.aurelium.slate.menu.MenuLoader;
+import dev.aurelium.slate.position.FixedPosition;
+import dev.aurelium.slate.position.GroupPosition;
+import dev.aurelium.slate.position.PositionProvider;
 import dev.aurelium.slate.util.MapParser;
+import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
 
 import java.util.ArrayList;
@@ -43,6 +49,30 @@ public abstract class MenuItemParser extends MapParser {
             int column = slot % 9;
             return SlotPos.of(row, column);
         }
+    }
+
+    protected @Nullable PositionProvider parsePosition(ConfigurationNode variantNode, Map<String, ContextGroup> groups) {
+        String positionString = variantNode.node("pos").getString();
+        if (positionString != null) {
+            return new FixedPosition(parsePosition(positionString));
+        } else if (!variantNode.node("group").virtual()) {
+            String groupName = variantNode.node("group").getString();
+            ContextGroup group = groups.get(groupName);
+            if (group == null) {
+                return new FixedPosition(parsePosition("0,0"));
+            } else {
+                int order = variantNode.node("order").getInt(1);
+                return new GroupPosition(group, order);
+            }
+        }
+        return null;
+    }
+
+    protected @Nullable ItemStack parseVariantBaseItem(ConfigurationNode variantNode) {
+        if (!variantNode.node("material").virtual() || !variantNode.node("key").virtual()) {
+            return itemParser.parseBaseItem(variantNode);
+        }
+        return null;
     }
 
     protected void parseCommonOptions(MenuItemBuilder builder, ConfigurationNode config, String menuName) {

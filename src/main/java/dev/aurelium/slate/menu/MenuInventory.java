@@ -178,6 +178,7 @@ public class MenuInventory implements InventoryProvider {
 
     private void addSingleItem(ActiveSingleItem activeItem, InventoryContents contents, Player player) {
         SingleItem item = activeItem.getItem();
+        ItemVariant variant = getItemVariant(item, activeMenu);
 
         if (item.failsViewConditions(player, this)) {
             return; // Don't show item
@@ -186,6 +187,9 @@ public class MenuInventory implements InventoryProvider {
         BuiltItem builtItem = slate.getBuiltMenu(menu.name()).getBackingItem(item.getName());
 
         ItemStack itemStack = item.getBaseItem().clone();
+        if (variant != null && variant.baseItem() != null) {
+            itemStack = variant.baseItem();
+        }
         builtItem.initListener().handle(new MenuInfo(slate, player, activeMenu));
 
         replaceItemPlaceholders(itemStack);
@@ -196,6 +200,9 @@ public class MenuInventory implements InventoryProvider {
         ItemMeta meta = itemStack.getItemMeta();
         if (meta != null) {
             String displayName = item.getDisplayName();
+            if (variant != null && variant.displayName() != null) {
+                displayName = variant.displayName();
+            }
             if (displayName != null) {
                 // BuiltItem replacers
                 displayName = builtItem.applyReplacers(displayName, slate, player, activeMenu, PlaceholderType.DISPLAY_NAME);
@@ -206,14 +213,22 @@ public class MenuInventory implements InventoryProvider {
                 setDisplayName(meta, tf.toComponent(displayName));
             }
             List<LoreLine> loreLines = item.getLore();
+            if (variant != null && !variant.lore().isEmpty()) {
+                loreLines = variant.lore();
+            }
             if (loreLines != null) {
                 setLore(meta, loreInterpreter.interpretLore(loreLines, player, activeMenu, builtItem, item));
             }
             itemStack.setItemMeta(meta);
         }
 
+        List<SlotPos> positions = item.getPositions();
+        if (variant != null && variant.positions() != null) {
+            positions = variant.positions();
+        }
+
         // Add item to inventory
-        addSingleItemToInventory(item, itemStack, item.getPositions(), contents, player, builtItem);
+        addSingleItemToInventory(item, itemStack, positions, contents, player, builtItem);
     }
 
     private <C> void addTemplateItem(ActiveTemplateItem<C> activeItem, InventoryContents contents, Player player) {
@@ -238,26 +253,10 @@ public class MenuInventory implements InventoryProvider {
         }
     }
 
-    private <C> @Nullable TemplateVariant<C> getVariant(TemplateItem<C> item, C context, ActiveMenu menu) {
-        for (TemplateVariant<C> variant : item.getVariants()) {
-            if (!variant.contextFilters().isEmpty() && !variant.contextFilters().contains(context)) {
-                continue;
-            }
-
+    private @Nullable ItemVariant getItemVariant(SingleItem item, ActiveMenu menu) {
+        for (ItemVariant variant : item.getVariants()) {
             if (!variant.propertyFilters().isEmpty()) {
-                boolean passes = true;
-                for (Entry<String, Object> entry : variant.propertyFilters().entrySet()) {
-                    Object propValue = menu.getProperties().get(entry.getKey());
-                    if (propValue == null) {
-                        passes = false;
-                        break;
-                    }
-                    if (!propValue.equals(entry.getValue())) {
-                        passes = false;
-                        break;
-                    }
-                }
-                if (!passes) {
+                if (failsPropertyFilters(variant.propertyFilters(), menu)) {
                     continue;
                 }
             }
@@ -267,8 +266,41 @@ public class MenuInventory implements InventoryProvider {
         return null;
     }
 
+    private <C> @Nullable TemplateVariant<C> getTemplateVariant(TemplateItem<C> item, C context, ActiveMenu menu) {
+        for (TemplateVariant<C> variant : item.getVariants()) {
+            if (!variant.contextFilters().isEmpty() && !variant.contextFilters().contains(context)) {
+                continue;
+            }
+
+            if (!variant.propertyFilters().isEmpty()) {
+                if (failsPropertyFilters(variant.propertyFilters(), menu)) {
+                    continue;
+                }
+            }
+
+            return variant;
+        }
+        return null;
+    }
+
+    private boolean failsPropertyFilters(Map<String, Object> propertyFilters, ActiveMenu menu) {
+        boolean fails = false;
+        for (Entry<String, Object> entry : propertyFilters.entrySet()) {
+            Object propValue = menu.getProperties().get(entry.getKey());
+            if (propValue == null) {
+                fails = true;
+                break;
+            }
+            if (!propValue.equals(entry.getValue())) {
+                fails = true;
+                break;
+            }
+        }
+        return fails;
+    }
+
     private <C> void addContextItem(InventoryContents contents, Player player, C context, TemplateItem<C> item, BuiltTemplate<C> builtTemplate, Set<C> contexts) {
-        TemplateVariant<C> variant = getVariant(item, context, activeMenu);
+        TemplateVariant<C> variant = getTemplateVariant(item, context, activeMenu);
         ItemStack itemStack = item.getBaseItems().get(context); // Get a context-specific base item
         if (itemStack == null) {
             itemStack = item.getDefaultBaseItem(); // Otherwise use default base item

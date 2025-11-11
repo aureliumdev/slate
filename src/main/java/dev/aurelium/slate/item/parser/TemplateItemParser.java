@@ -139,26 +139,8 @@ public class TemplateItemParser<C> extends MenuItemParser {
 
             Map<String, Object> propertyFilters = new MenuActionParser(slate).getProperties(menuName, variantNode);
 
-            ItemStack baseItem = null;
-            if (!variantNode.node("material").virtual() || !variantNode.node("key").virtual()) {
-                baseItem = itemParser.parseBaseItem(variantNode);
-            }
-
-            PositionProvider positionProvider = null;
-            String positionString = variantNode.node("pos").getString();
-            if (positionString != null) {
-                positionProvider = new FixedPosition(parsePosition(positionString));
-            } else if (!variantNode.node("group").virtual()) {
-                String groupName = variantNode.node("group").getString();
-                ContextGroup group = groups.get(groupName);
-                if (group == null) {
-                    positionProvider = new FixedPosition(parsePosition("0,0"));
-                } else {
-                    int order = variantNode.node("order").getInt(1);
-                    positionProvider = new GroupPosition(group, order);
-                }
-            }
-
+            ItemStack baseItem = parseVariantBaseItem(variantNode);
+            PositionProvider positionProvider = parsePosition(variantNode, groups);
             String displayName = itemParser.parseDisplayName(variantNode);
             List<LoreLine> lore = itemParser.parseLore(variantNode);
 

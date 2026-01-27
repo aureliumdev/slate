@@ -2,12 +2,14 @@ package dev.aurelium.slate.menu;
 
 import dev.aurelium.slate.Slate;
 import dev.aurelium.slate.action.Action;
+import dev.aurelium.slate.action.BukkitActionExecutor;
 import dev.aurelium.slate.action.ItemActions;
 import dev.aurelium.slate.action.trigger.ClickTrigger;
 import dev.aurelium.slate.action.trigger.MenuTrigger;
 import dev.aurelium.slate.builder.BuiltItem;
 import dev.aurelium.slate.builder.BuiltMenu;
 import dev.aurelium.slate.builder.BuiltTemplate;
+import dev.aurelium.slate.fill.BukkitFillData;
 import dev.aurelium.slate.fill.FillData;
 import dev.aurelium.slate.info.ItemInfo;
 import dev.aurelium.slate.info.MenuInfo;
@@ -28,7 +30,6 @@ import dev.aurelium.slate.position.PositionProvider;
 import dev.aurelium.slate.text.TextFormatter;
 import dev.aurelium.slate.util.PaperUtil;
 import dev.aurelium.slate.util.TextUtil;
-import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -46,6 +47,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.Map.Entry;
 
+import static dev.aurelium.slate.bukkit.ref.BukkitItemRef.unwrap;
+import static dev.aurelium.slate.bukkit.ref.BukkitPlayerRef.wrap;
+
 public class MenuInventory implements InventoryProvider {
 
     private final Slate slate;
@@ -62,13 +66,14 @@ public class MenuInventory implements InventoryProvider {
     private final BuiltMenu builtMenu;
     private final ArrayList<ActiveItem> toUpdate;
     private final MenuInfo menuInfo;
+    private final BukkitActionExecutor actionExecutor;
 
     public MenuInventory(Slate slate, LoadedMenu menu, Player player, Map<String, Object> properties, int currentPage) {
         this.slate = slate;
         this.loreInterpreter = new LoreInterpreter(slate);
         this.menu = menu;
         this.activeItems = new LinkedHashMap<>();
-        this.activeMenu = new ActiveMenu(this);
+        this.activeMenu = new BukkitActiveMenu(this);
         this.toUpdate = new ArrayList<>();
         this.properties = new HashMap<>(properties); // Make a copy in case the properties map passed in is immutable
         this.player = player;
@@ -76,6 +81,7 @@ public class MenuInventory implements InventoryProvider {
         this.totalPages = builtMenu.pageProvider().getPages(new MenuInfo(slate, player, activeMenu));
         this.currentPage = currentPage;
         this.menuInfo = new MenuInfo(slate, player, activeMenu);
+        this.actionExecutor = new BukkitActionExecutor(slate);
     }
 
     public Slate getSlate() {
@@ -142,11 +148,12 @@ public class MenuInventory implements InventoryProvider {
         // Handle onOpen
         builtMenu.openListener().handle(new MenuInfo(slate, player, activeMenu));
         // Execute open actions
-        menu.executeActions(MenuTrigger.OPEN, player, this);
+        BukkitLoadedMenu.executeActions(menu, slate, MenuTrigger.OPEN, player, this);
         // Place fill items
         FillData fillData = menu.fillData();
         if (fillData.enabled()) {
-            fillData.placeInMenu(slate, player, this);
+            BukkitFillData bukkitFillData = new BukkitFillData(fillData);
+            bukkitFillData.placeInMenu(slate, player, this);
         }
         // Place items
         for (ActiveItem activeItem : activeItems.values()) {
@@ -172,22 +179,23 @@ public class MenuInventory implements InventoryProvider {
 
     // Added to SmartInventory listeners by builder
     public void close(InventoryCloseEvent event) {
-        menu.executeActions(MenuTrigger.CLOSE, player, this);
+        BukkitLoadedMenu.executeActions(menu, slate, MenuTrigger.CLOSE, player, this);
     }
 
     private void addSingleItem(ActiveSingleItem activeItem, InventoryContents contents, Player player) {
         SingleItem item = activeItem.getItem();
         ItemVariant variant = getItemVariant(item, activeMenu);
 
-        if (item.failsViewConditions(player, this)) {
+        BukkitMenuItem bukkitMenuItem = new BukkitMenuItem(slate, item);
+        if (bukkitMenuItem.failsViewConditions(player, this)) {
             return; // Don't show item
         }
 
         BuiltItem builtItem = slate.getBuiltMenu(menu.name()).getBackingItem(item.getName());
 
-        ItemStack itemStack = item.getBaseItem().clone();
+        ItemStack itemStack = unwrap(item.getBaseItem()).clone();
         if (variant != null && variant.baseItem() != null) {
-            itemStack = variant.baseItem();
+            itemStack = unwrap(variant.baseItem());
         }
         builtItem.initListener().handle(new MenuInfo(slate, player, activeMenu));
 
@@ -207,7 +215,7 @@ public class MenuInventory implements InventoryProvider {
                 displayName = builtItem.applyReplacers(displayName, slate, player, activeMenu, PlaceholderType.DISPLAY_NAME);
 
                 if (slate.isPlaceholderAPIEnabled()) {
-                    displayName = PlaceholderAPI.setPlaceholders(player, displayName);
+                    displayName = slate.getPlaceholderHook().setPlaceholders(wrap(player), displayName);
                 }
                 setDisplayName(meta, tf.toComponent(displayName));
             }
@@ -234,7 +242,8 @@ public class MenuInventory implements InventoryProvider {
         TemplateItem<C> item = activeItem.getItem();
         BuiltTemplate<C> builtTemplate = slate.getBuiltMenu(menu.name()).getTemplate(item.getName(), item.getContextClass());
 
-        if (item.failsViewConditions(player, this)) {
+        BukkitMenuItem bukkitMenuItem = new BukkitMenuItem(slate, item);
+        if (bukkitMenuItem.failsViewConditions(player, this)) {
             return; // Don't show item
         }
 
@@ -243,8 +252,9 @@ public class MenuInventory implements InventoryProvider {
         Set<C> builtDefined = builtTemplate.definedContexts().get(new MenuInfo(slate, player, activeMenu));
         contexts = Objects.requireNonNullElseGet(builtDefined, () -> item.getBaseItems().keySet());
 
+        BukkitTemplateItem<C> templateItem = new BukkitTemplateItem<>(slate, item);
         for (C context : contexts) {
-            if (item.failsContextViewConditions(context, player, this)) {
+            if (templateItem.failsContextViewConditions(context, player, this)) {
                 continue;
             }
 
@@ -300,12 +310,12 @@ public class MenuInventory implements InventoryProvider {
 
     private <C> void addContextItem(InventoryContents contents, Player player, C context, TemplateItem<C> item, BuiltTemplate<C> builtTemplate, Set<C> contexts) {
         TemplateVariant<C> variant = getTemplateVariant(item, context, activeMenu);
-        ItemStack itemStack = item.getBaseItems().get(context); // Get a context-specific base item
+        ItemStack itemStack = unwrap(item.getBaseItems().get(context)); // Get a context-specific base item
         if (itemStack == null) {
-            itemStack = item.getDefaultBaseItem(); // Otherwise use default base item
+            itemStack = unwrap(item.getDefaultBaseItem()); // Otherwise use default base item
         }
         if (variant != null && variant.baseItem() != null) {
-            itemStack = variant.baseItem();
+            itemStack = unwrap(variant.baseItem());
         }
         if (itemStack != null) {
             itemStack = itemStack.clone();
@@ -367,7 +377,7 @@ public class MenuInventory implements InventoryProvider {
             displayName = builtTemplate.applyReplacers(displayName, slate, player, activeMenu, PlaceholderType.DISPLAY_NAME, context);
 
             if (slate.isPlaceholderAPIEnabled()) {
-                displayName = PlaceholderAPI.setPlaceholders(player, displayName);
+                displayName = slate.getPlaceholderHook().setPlaceholders(wrap(player), displayName);
             }
             setDisplayName(meta, tf.toComponent(displayName));
         }
@@ -437,8 +447,9 @@ public class MenuInventory implements InventoryProvider {
 
     private boolean failsClickConditions(MenuItem menuItem, Player player, InventoryClickEvent event) {
         // Check click conditions
+        BukkitMenuItem bukkitMenuItem = new BukkitMenuItem(slate, menuItem);
         for (ClickTrigger trigger : getClickTriggers(event.getClick())) {
-            if (menuItem.failsClickConditions(trigger, player, this)) {
+            if (bukkitMenuItem.failsClickConditions(trigger, player, this)) {
                 return true;
             }
         }
@@ -447,8 +458,9 @@ public class MenuInventory implements InventoryProvider {
 
     private <C> boolean failsContextClickConditions(C context, TemplateItem<C> template, Player player, InventoryClickEvent event) {
         // Check click conditions
+        BukkitTemplateItem<C> templateItem = new BukkitTemplateItem<>(slate, template);
         for (ClickTrigger trigger : getClickTriggers(event.getClick())) {
-            if (template.failsContextClickConditions(context, trigger, player, this)) {
+            if (templateItem.failsContextClickConditions(context, trigger, player, this)) {
                 return true;
             }
         }
@@ -490,7 +502,7 @@ public class MenuInventory implements InventoryProvider {
             ClickTrigger clickTrigger = entry.getKey();
             if (clickTriggers.contains(clickTrigger)) { // Make sure click matches
                 for (Action action : entry.getValue()) { // Execute each action
-                    action.execute(player, this, contents);
+                    actionExecutor.executeAction(action, player, this);
                 }
             }
         }
@@ -533,7 +545,7 @@ public class MenuInventory implements InventoryProvider {
             if (placeholder != null) {
                 placeholder = TextUtil.replace(placeholder, "{player}", player.getUniqueId().toString());
                 if (slate.isPlaceholderAPIEnabled()) { // Replace PlaceholderAPI placeholders inside skull_placeholder_uuid
-                    placeholder = PlaceholderAPI.setPlaceholders(player, placeholder);
+                    placeholder = slate.getPlaceholderHook().setPlaceholders(wrap(player), placeholder);
                 }
                 try {
                     UUID uuid = UUID.fromString(placeholder);

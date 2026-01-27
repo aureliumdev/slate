@@ -28,14 +28,16 @@ repositories {
 }
 
 dependencies {
+    api(project(":common"))
     api("org.spongepowered:configurate-yaml:4.2.0")
     api("net.kyori:adventure-platform-bukkit:4.3.2")
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
     compileOnly("me.clip:placeholderapi:2.11.6")
     compileOnly("com.mojang:authlib:1.5.25")
     compileOnly("org.jetbrains:annotations:24.1.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
+    testImplementation(platform("org.junit:junit-bom:5.10.0"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks {
@@ -62,6 +64,10 @@ tasks {
 
     withType<JavaCompile> {
         options.encoding = "UTF-8"
+    }
+
+    test {
+        useJUnitPlatform()
     }
 }
 

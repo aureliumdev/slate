@@ -1,17 +1,15 @@
 package dev.aurelium.slate;
 
-import dev.aurelium.slate.action.ActionManager;
 import dev.aurelium.slate.builder.BuiltMenu;
 import dev.aurelium.slate.builder.GlobalBehavior;
 import dev.aurelium.slate.builder.GlobalBehaviorBuilder;
 import dev.aurelium.slate.builder.MenuBuilder;
+import dev.aurelium.slate.bukkit.hooks.BukkitPlaceholderHook;
 import dev.aurelium.slate.context.ContextManager;
+import dev.aurelium.slate.hooks.PlaceholderHook;
 import dev.aurelium.slate.inv.InventoryManager;
 import dev.aurelium.slate.item.ItemProtection;
-import dev.aurelium.slate.menu.LoadedMenu;
-import dev.aurelium.slate.menu.MenuFileGenerator;
-import dev.aurelium.slate.menu.MenuLoader;
-import dev.aurelium.slate.menu.MenuOpener;
+import dev.aurelium.slate.menu.*;
 import dev.aurelium.slate.option.SlateOptions;
 import dev.aurelium.slate.scheduler.Scheduler;
 import org.bukkit.Bukkit;
@@ -25,20 +23,20 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 
-public class Slate {
+public class Slate extends SlateLibrary {
 
     private final JavaPlugin plugin;
     private final Scheduler scheduler;
     private final ContextManager contextManager;
     private final InventoryManager inventoryManager;
-    private final ActionManager actionManager;
     private final boolean placeholderAPIEnabled;
     private final SlateOptions options;
     private final Map<String, BuiltMenu> builtMenus = new HashMap<>();
     private final Map<String, LoadedMenu> loadedMenus = new LinkedHashMap<>();
     private final MenuOpener menuOpener = new MenuOpener(this);
-    private final ItemProtection itemProtection = new ItemProtection();
+    private final BukkitPlaceholderHook placeholderHook;
 
     private GlobalBehavior globalBehavior = GlobalBehaviorBuilder.builder().build();
 
@@ -48,10 +46,11 @@ public class Slate {
         this.contextManager = new ContextManager();
         this.inventoryManager = new InventoryManager(plugin, scheduler);
         inventoryManager.init();
-        this.actionManager = new ActionManager(this);
         this.placeholderAPIEnabled = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI");
+        this.placeholderHook = new BukkitPlaceholderHook(this);
         this.options = options;
         if (options.removalProtection()) {
+            ItemProtection itemProtection = new ItemProtection();
             plugin.getServer().getPluginManager().registerEvents(itemProtection, plugin);
         }
     }
@@ -64,7 +63,7 @@ public class Slate {
      * @return the number of menus successfully loaded
      */
     public int loadMenus() {
-        MenuLoader loader = new MenuLoader(this, options.mainDirectory(), options.mergeDirectories());
+        MenuLoader loader = new BukkitMenuLoader(this, options.mainDirectory(), options.mergeDirectories());
         return loader.loadMenus();
     }
 
@@ -150,12 +149,13 @@ public class Slate {
         return inventoryManager;
     }
 
-    public ActionManager getActionManager() {
-        return actionManager;
-    }
-
     public boolean isPlaceholderAPIEnabled() {
         return placeholderAPIEnabled;
+    }
+
+    @Override
+    public File getDataFolder() {
+        return plugin.getDataFolder();
     }
 
     public int getLoreWrappingWidth() {
@@ -168,10 +168,6 @@ public class Slate {
 
     public Scheduler getScheduler() {
         return scheduler;
-    }
-
-    public ItemProtection getItemProtection() {
-        return itemProtection;
     }
 
     /**
@@ -207,6 +203,11 @@ public class Slate {
         this.loadedMenus.put(menu.name(), menu);
     }
 
+    @Override
+    public PlaceholderHook getPlaceholderHook() {
+        return placeholderHook;
+    }
+
     @Nullable
     public LoadedMenu getLoadedMenu(String name) {
         return loadedMenus.get(name);
@@ -237,6 +238,11 @@ public class Slate {
 
     public void removeMergeDirectory(File mergeDir) {
         options.mergeDirectories().remove(mergeDir);
+    }
+
+    @Override
+    public Logger getLogger() {
+        return plugin.getLogger();
     }
 
 }

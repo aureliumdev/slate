@@ -17,7 +17,6 @@ import dev.aurelium.slate.text.TextFormatter;
 import dev.aurelium.slate.util.LoreUtil;
 import dev.aurelium.slate.util.Pair;
 import dev.aurelium.slate.util.TextUtil;
-import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -28,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static dev.aurelium.slate.bukkit.ref.BukkitPlayerRef.wrap;
 
 public class LoreInterpreter {
 
@@ -182,7 +183,7 @@ public class LoreInterpreter {
 
     private String replaceAndWrap(TextLore textLore, Player player, String text) {
         if (slate.isPlaceholderAPIEnabled()) {
-            text = PlaceholderAPI.setPlaceholders(player, text);
+            text = slate.getPlaceholderHook().setPlaceholders(wrap(player), text);
         }
         if (textLore.shouldWrap()) {
             if (textLore.isSmartWrap()) { // Detect tags inside string to use as insertions

@@ -5,12 +5,13 @@ import dev.aurelium.slate.builder.BuiltMenu;
 import dev.aurelium.slate.inv.InventoryListener;
 import dev.aurelium.slate.inv.SmartInventory;
 import dev.aurelium.slate.text.TextFormatter;
-import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static dev.aurelium.slate.bukkit.ref.BukkitPlayerRef.wrap;
 
 public class MenuOpener {
 
@@ -53,7 +54,7 @@ public class MenuOpener {
         title = builtMenu.applyTitleReplacers(title, slate, player, menuInventory.getActiveMenu());
 
         if (slate.isPlaceholderAPIEnabled()) {
-            title = PlaceholderAPI.setPlaceholders(player, title);
+            title = slate.getPlaceholderHook().setPlaceholders(wrap(player), title);
         }
 
         if ((boolean) menu.options().getOrDefault("format_title", true)) {

@@ -5,6 +5,7 @@ import dev.aurelium.slate.function.ItemMetaParser;
 import dev.aurelium.slate.item.provider.KeyedItemProvider;
 import dev.aurelium.slate.lore.LoreFactory;
 import dev.aurelium.slate.lore.LoreLine;
+import dev.aurelium.slate.ref.ItemRef;
 import dev.aurelium.slate.util.NumberUtil;
 import dev.aurelium.slate.util.SkullCreator;
 import dev.aurelium.slate.util.Validate;
@@ -30,7 +31,9 @@ import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.util.*;
 
-public class ConfigurateItemParser {
+import static dev.aurelium.slate.bukkit.ref.BukkitItemRef.wrap;
+
+public class ConfigurateItemParser implements ItemParser {
 
     private final Slate slate;
     private final Plugin plugin;
@@ -40,12 +43,13 @@ public class ConfigurateItemParser {
         this.plugin = slate.getPlugin();
     }
 
-    public ItemStack parseBaseItem(ConfigurationNode config) {
+    @Override
+    public ItemRef parseBaseItem(ConfigurationNode config) {
         String key = config.node("key").getString();
         if (key != null) {
             ItemStack item = parseItemKey(key);
             if (item != null) {
-                return item; // Returns the item if key parse was successful
+                return wrap(item); // Returns the item if key parse was successful
             }
         }
 
@@ -57,7 +61,7 @@ public class ConfigurateItemParser {
         parseAmount(item, config);
 
         ItemMeta meta = item.getItemMeta();
-        if (meta == null) return item;
+        if (meta == null) return wrap(item);
         // Enchantments
         if (!config.node("enchantments").virtual()) {
             parseEnchantments(item, config);
@@ -91,7 +95,7 @@ public class ConfigurateItemParser {
                 item = entry.getValue().parse(item, section);
             }
         }
-        return item;
+        return wrap(item);
     }
 
     @Nullable
@@ -212,6 +216,7 @@ public class ConfigurateItemParser {
     }
 
     @Nullable
+    @Override
     public String parseDisplayName(ConfigurationNode section) {
         if (!section.node("display_name").virtual()) {
             return section.node("display_name").getString();
@@ -220,14 +225,13 @@ public class ConfigurateItemParser {
     }
 
     @NotNull
+    @Override
     public List<LoreLine> parseLore(ConfigurationNode section) {
         ConfigurationNode loreNode = section.node("lore");
         return new LoreFactory(slate).getLore(loreNode);
     }
 
-
-
-    protected Material parseMaterial(String name) {
+    private Material parseMaterial(String name) {
         return Material.getMaterial(name);
     }
 

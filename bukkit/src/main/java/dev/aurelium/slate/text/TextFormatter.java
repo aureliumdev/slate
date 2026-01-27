@@ -7,7 +7,6 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.ParsingException;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +32,6 @@ public class TextFormatter {
         try {
             return removeItalic(mm.deserialize(message));
         } catch (ParsingException e) {
-            Bukkit.getLogger().info("[Slate] Error applying MiniMessage formatting to input message: " + message);
             e.printStackTrace();
         }
         // MiniMessage parsing

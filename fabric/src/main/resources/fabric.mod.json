@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "slate",
+  "version": "0.1.0",
+  "name": "Slate",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.aurelium.slate.fabric.SlateMod"
+    ],
+    "client": [
+
+    ],
+    "fabric-datagen": [
+
+    ]
+  },
+  "mixins": [
+    "slate.mixins.json"
+  ],
+  "depends": {}
+}

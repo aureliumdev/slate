@@ -1,7 +1,7 @@
 package dev.aurelium.slate.fabric.function;
 
-import dev.aurelium.slate.info.MenuInfo;
-import net.minecraft.world.entity.player.Player;
+import dev.aurelium.slate.fabric.info.MenuInfo;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Locale;
 
@@ -15,6 +15,6 @@ public interface LocaleProvider {
      * @param player the player
      * @return the locale
      */
-    Locale get(Player player);
+    Locale get(ServerPlayer player);
 
 }

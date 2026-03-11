@@ -1,9 +1,8 @@
 package dev.aurelium.slate.fabric.info;
 
-import dev.aurelium.slate.builder.GlobalBehavior;
 import dev.aurelium.slate.fabric.Slate;
 import dev.aurelium.slate.menu.ActiveMenu;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Locale;
 
@@ -13,10 +12,10 @@ import java.util.Locale;
 public class MenuInfo {
 
     private final Slate slate;
-    private final Player player;
+    private final ServerPlayer player;
     private final ActiveMenu menu;
 
-    public MenuInfo(Slate slate, Player player, ActiveMenu menu) {
+    public MenuInfo(Slate slate, ServerPlayer player, ActiveMenu menu) {
         this.slate = slate;
         this.player = player;
         this.menu = menu;
@@ -27,7 +26,7 @@ public class MenuInfo {
      *
      * @return the player
      */
-    public Player player() {
+    public ServerPlayer player() {
         return player;
     }
 
@@ -42,7 +41,7 @@ public class MenuInfo {
     }
 
     /**
-     * Gets the locale of the player viewing the menu as defined by the {@link GlobalBehavior#localeProvider()}.
+     * Gets the locale of the player viewing the menu as defined by the {@link dev.aurelium.slate.fabric.builder.GlobalBehavior#localeProvider()}.
      * If the locale provider is not set, this will always return {@code Locale.ENGLISH}. This is useful if you
      * have player-dependent locales.
      *

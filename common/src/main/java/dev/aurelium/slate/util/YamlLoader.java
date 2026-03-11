@@ -26,11 +26,9 @@ import java.util.logging.Logger;
 public class YamlLoader {
 
     private final Logger logger;
-    private final File dataFolder;
 
-    public YamlLoader(Logger logger, File dataFolder) {
+    public YamlLoader(Logger logger) {
         this.logger = logger;
-        this.dataFolder = dataFolder;
     }
 
     @Nullable
@@ -71,42 +69,6 @@ public class YamlLoader {
                 .indent(2)
                 .build();
         loader.save(config);
-    }
-
-    public void saveIfUpdated(File file, ConfigurationNode embedded, ConfigurationNode user, ConfigurationNode merged) throws ConfigurateException {
-        int embeddedCount = getLeafNodes(embedded).size();
-        int userCount = getLeafNodes(user).size();
-        if (embeddedCount > userCount) {
-            saveFile(file, merged);
-            String path = dataFolder.toPath().relativize(file.toPath()).toString();
-            int updated = embeddedCount - userCount;
-            logger.info("Updated " + path + " with " + updated + " new key" + (updated != 1 ? "s" : ""));
-        }
-    }
-
-    public void generateUserFile(String path) throws ConfigurateException {
-        ConfigurationNode config = loadEmbeddedFile(path);
-        if (config == null) return;
-
-        var file = new File(dataFolder, path);
-        if (!file.exists()) {
-            saveFile(file, config);
-        }
-    }
-
-    public List<ConfigurationNode> getLeafNodes(ConfigurationNode root) {
-        var leafNodes = new ArrayList<ConfigurationNode>();
-        var toProcess = new Stack<ConfigurationNode>();
-        toProcess.addAll(root.childrenMap().values());
-        while (!toProcess.isEmpty()) {
-            ConfigurationNode node = toProcess.pop();
-            if (node.isMap()) {
-                toProcess.addAll(node.childrenMap().values());
-            } else {
-                leafNodes.add(node);
-            }
-        }
-        return leafNodes;
     }
 
     public ConfigurationNode mergeNodes(@NotNull ConfigurationNode... nodes) throws SerializationException {

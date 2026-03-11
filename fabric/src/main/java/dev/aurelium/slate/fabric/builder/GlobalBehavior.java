@@ -12,6 +12,7 @@ import dev.aurelium.slate.menu.ActiveMenu;
 import dev.aurelium.slate.util.LoreUtil;
 import dev.aurelium.slate.util.Pair;
 import dev.aurelium.slate.util.TextUtil;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.Map;
@@ -32,7 +33,7 @@ public record GlobalBehavior(
         return GlobalBehaviorBuilder.builder();
     }
 
-    public String applyGlobalReplacers(String input, Slate slate, Player player, ActiveMenu activeMenu, PlaceholderType type) {
+    public String applyGlobalReplacers(String input, Slate slate, ServerPlayer player, ActiveMenu activeMenu, PlaceholderType type) {
         Map<String, ItemReplacer> pageReplacers = slate.getBuiltMenu(activeMenu.getName()).pageReplacers();
 
         String[] placeholders = TextUtil.substringsBetween(input, "{", "}");

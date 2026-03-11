@@ -3,6 +3,7 @@ package dev.aurelium.slate.fabric.info;
 import dev.aurelium.slate.fabric.Slate;
 import dev.aurelium.slate.item.provider.PlaceholderData;
 import dev.aurelium.slate.menu.ActiveMenu;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
 /**
@@ -13,7 +14,7 @@ public class PlaceholderInfo extends MenuInfo {
     private final String placeholder;
     private final PlaceholderData data;
 
-    public PlaceholderInfo(Slate slate, Player player, String placeholder, ActiveMenu menu, PlaceholderData data) {
+    public PlaceholderInfo(Slate slate, ServerPlayer player, String placeholder, ActiveMenu menu, PlaceholderData data) {
         super(slate, player, menu);
         this.placeholder = placeholder;
         this.data = data;

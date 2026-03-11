@@ -42,7 +42,18 @@ dependencies {
 
 tasks {
     withType<ShadowJar> {
+        val projectVersion: String by project
+        archiveFileName.set("slate-${projectVersion}-bukkit.jar")
+
         exclude("plugin.yml")
+
+        finalizedBy("copyJar")
+    }
+
+    register<Copy>("copyJar") {
+        val projectVersion: String by project
+        from("build/libs/slate-${projectVersion}-bukkit.jar")
+        into("../build/libs")
     }
 
     javadoc {

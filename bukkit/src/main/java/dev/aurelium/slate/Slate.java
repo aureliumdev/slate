@@ -29,7 +29,6 @@ public class Slate extends SlateLibrary {
 
     private final JavaPlugin plugin;
     private final Scheduler scheduler;
-    private final ContextManager contextManager;
     private final InventoryManager inventoryManager;
     private final boolean placeholderAPIEnabled;
     private final SlateOptions options;
@@ -43,7 +42,6 @@ public class Slate extends SlateLibrary {
     public Slate(JavaPlugin plugin, SlateOptions options) {
         this.plugin = plugin;
         this.scheduler = Scheduler.createScheduler(plugin);
-        this.contextManager = new ContextManager();
         this.inventoryManager = new InventoryManager(plugin, scheduler);
         inventoryManager.init();
         this.placeholderAPIEnabled = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI");
@@ -62,6 +60,7 @@ public class Slate extends SlateLibrary {
      *
      * @return the number of menus successfully loaded
      */
+    @Override
     public int loadMenus() {
         MenuLoader loader = new BukkitMenuLoader(this, options.mainDirectory(), options.mergeDirectories());
         return loader.loadMenus();
@@ -71,6 +70,7 @@ public class Slate extends SlateLibrary {
      * Generates missing menu files into the {@link SlateOptions#mainDirectory()} based on the menu names
      * registered previously through {@link #buildMenu(String, Consumer)}.
      */
+    @Override
     public void generateFiles() {
         new MenuFileGenerator(this).generate();
     }
@@ -133,6 +133,7 @@ public class Slate extends SlateLibrary {
         menuOpener.openMenu(player, name);
     }
 
+    @Override
     public void unregisterMenus() {
         this.builtMenus.clear();
     }
@@ -141,14 +142,11 @@ public class Slate extends SlateLibrary {
         return plugin;
     }
 
-    public ContextManager getContextManager() {
-        return contextManager;
-    }
-
     public InventoryManager getInventoryManager() {
         return inventoryManager;
     }
 
+    @Override
     public boolean isPlaceholderAPIEnabled() {
         return placeholderAPIEnabled;
     }
@@ -158,6 +156,12 @@ public class Slate extends SlateLibrary {
         return plugin.getDataFolder();
     }
 
+    @Override
+    public void saveResource(String path, boolean replace) {
+        plugin.saveResource(path, replace);
+    }
+
+    @Override
     public int getLoreWrappingWidth() {
         return options.loreWrappingWidth();
     }
@@ -199,6 +203,7 @@ public class Slate extends SlateLibrary {
         return builtMenus;
     }
 
+    @Override
     public void addLoadedMenu(LoadedMenu menu) {
         this.loadedMenus.put(menu.name(), menu);
     }
@@ -209,10 +214,12 @@ public class Slate extends SlateLibrary {
     }
 
     @Nullable
+    @Override
     public LoadedMenu getLoadedMenu(String name) {
         return loadedMenus.get(name);
     }
 
+    @Override
     public Map<String, LoadedMenu> getLoadedMenus() {
         return loadedMenus;
     }
@@ -227,6 +234,7 @@ public class Slate extends SlateLibrary {
         return globalBehavior;
     }
 
+    @Override
     public void addMergeDirectory(File mergeDir) {
         if (!mergeDir.isDirectory()) return;
 
@@ -236,6 +244,7 @@ public class Slate extends SlateLibrary {
         options.mergeDirectories().add(mergeDir);
     }
 
+    @Override
     public void removeMergeDirectory(File mergeDir) {
         options.mergeDirectories().remove(mergeDir);
     }

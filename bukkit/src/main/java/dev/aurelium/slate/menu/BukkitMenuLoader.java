@@ -24,12 +24,10 @@ import java.util.*;
 public class BukkitMenuLoader extends MenuLoader {
 
     private final Slate slate;
-    private final YamlLoader loader;
 
     public BukkitMenuLoader(Slate slate, File mainDir, List<File> mergeDirs) {
         super(slate, mainDir, mergeDirs);
         this.slate = slate;
-        this.loader = new YamlLoader(slate.getPlugin().getLogger(), slate.getPlugin().getDataFolder());
     }
 
     /**
@@ -113,7 +111,7 @@ public class BukkitMenuLoader extends MenuLoader {
         }
 
         generateDefaultOptions(menuName, file, config);
-        Map<String, Object> options = BukkitMenuLoader.loadOptions(config);
+        Map<String, Object> options = loadOptions(config);
 
         Map<MenuTrigger, List<Action>> actions = loadActions(config, menuName);
         // Add menu to map

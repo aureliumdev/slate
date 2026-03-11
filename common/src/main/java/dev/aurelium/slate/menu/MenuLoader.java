@@ -16,13 +16,13 @@ public abstract class MenuLoader {
     private final SlateLibrary slate;
     private final File mainDir;
     private final List<File> mergeDirs;
-    private final YamlLoader loader;
+    protected final YamlLoader loader;
 
     public MenuLoader(SlateLibrary slate, File mainDir, List<File> mergeDirs) {
         this.slate = slate;
         this.mainDir = mainDir;
         this.mergeDirs = mergeDirs;
-        this.loader = new YamlLoader(slate.getLogger(), slate.getDataFolder());
+        this.loader = new YamlLoader(slate.getLogger());
     }
 
     public int loadMenus() {

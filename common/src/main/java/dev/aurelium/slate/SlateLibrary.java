@@ -33,6 +33,8 @@ public abstract class SlateLibrary {
 
     public abstract File getDataFolder();
 
+    public abstract void saveResource(String path, boolean replace);
+
     public abstract void addLoadedMenu(LoadedMenu menu);
 
     public abstract PlaceholderHook getPlaceholderHook();

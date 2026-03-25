@@ -26,6 +26,8 @@ import net.minecraft.util.Util;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.ResolvableProfile;
@@ -54,8 +56,12 @@ public class ConfigurateItemParser implements ItemParser {
 
     @Override
     public ItemRef parseBaseItem(ConfigurationNode config) {
+        return parseBaseItem(config, Set.of());
+    }
+
+    public ItemRef parseBaseItem(ConfigurationNode config, Set<String> excludedKeys) {
         String key = config.node("key").getString();
-        if (key != null) {
+        if (key != null && !excludedKeys.contains("key")) {
             ItemStack item = parseItemKey(key);
             if (item != null) {
                 return wrap(item); // Returns the item if key parse was successful
@@ -68,18 +74,25 @@ public class ConfigurateItemParser implements ItemParser {
         Item itemType = BuiltInRegistries.ITEM.getValue(Identifier.parse(materialString.toLowerCase(Locale.ROOT)));
         ItemStack itemStack = new ItemStack(itemType);
 
-        int amount = config.node("amount").getInt(1);
-        itemStack.setCount(amount);
+        if (!excludedKeys.contains("amount")) {
+            int amount = config.node("amount").getInt(1);
+            itemStack.setCount(amount);
+        }
 
-        if (!config.node("enchantments").empty()) {
+        if (!config.node("enchantments").empty() && !excludedKeys.contains("enchantments")) {
             parseEnchantments(itemStack, config);
         }
-        if (!config.node("flags").empty()) {
+        if (!config.node("flags").empty() && !excludedKeys.contains("flags")) {
             parseFlags(config, itemStack);
         }
-        parseHideTooltip(config, itemStack);
-        if (!config.node("skull_meta").empty()) {
+        if (!config.node("hide_tooltip").empty() && !excludedKeys.contains("hide_tooltip")) {
+            parseHideTooltip(config, itemStack);
+        }
+        if (!config.node("skull_meta").empty() && !excludedKeys.contains("skull_meta")) {
             parseSkullMeta(config, itemStack);
+        }
+        if (!config.node("potion_data").empty() && !excludedKeys.contains("potion_data")) {
+            parsePotionData(config, itemStack);
         }
 
         // Custom item meta parsers
@@ -91,6 +104,32 @@ public class ConfigurateItemParser implements ItemParser {
         }
 
         return wrap(itemStack);
+    }
+
+    private void parsePotionData(ConfigurationNode node, ItemStack item) {
+        String typeName = node.node("potion_data", "type").getString("water").toLowerCase(Locale.ROOT);
+        typeName = substitutePotionType(typeName);
+
+        Reference<Potion> potion = BuiltInRegistries.POTION.get(Identifier.parse(typeName)).orElse(null);
+        if (potion == null) {
+            slate.getLogger().warning("Potion type " + typeName + " not found in Minecraft registry");
+            return;
+        }
+
+        PotionContents potionContents = new PotionContents(potion);
+
+        item.set(DataComponents.POTION_CONTENTS, potionContents);
+    }
+
+    private String substitutePotionType(String name) {
+        return switch (name) {
+            case "instant_damage" -> "harming";
+            case "instant_heal" -> "healing";
+            case "regen" -> "regeneration";
+            case "jump" -> "leaping";
+            case "speed" -> "swiftness";
+            default -> name;
+        };
     }
 
     private void parseEnchantments(ItemStack item, ConfigurationNode config) {
@@ -144,15 +183,13 @@ public class ConfigurateItemParser implements ItemParser {
     }
 
     public void parseHideTooltip(ConfigurationNode config, ItemStack item) {
-        if (!config.node("hide_tooltip").virtual()) {
-            boolean hideTooltip = config.node("hide_tooltip").getBoolean();
-            TooltipDisplay tooltipDisplay = item.get(DataComponents.TOOLTIP_DISPLAY);
-            SequencedSet<DataComponentType<?>> hiddenComponents = new ReferenceLinkedOpenHashSet<>();
-            if (tooltipDisplay != null) {
-                hiddenComponents = new ReferenceLinkedOpenHashSet<>(tooltipDisplay.hiddenComponents());
-            }
-            item.set(DataComponents.TOOLTIP_DISPLAY, new TooltipDisplay(hideTooltip, hiddenComponents));
+        boolean hideTooltip = config.node("hide_tooltip").getBoolean();
+        TooltipDisplay tooltipDisplay = item.get(DataComponents.TOOLTIP_DISPLAY);
+        SequencedSet<DataComponentType<?>> hiddenComponents = new ReferenceLinkedOpenHashSet<>();
+        if (tooltipDisplay != null) {
+            hiddenComponents = new ReferenceLinkedOpenHashSet<>(tooltipDisplay.hiddenComponents());
         }
+        item.set(DataComponents.TOOLTIP_DISPLAY, new TooltipDisplay(hideTooltip, hiddenComponents));
     }
 
     private void parseSkullMeta(ConfigurationNode config, ItemStack item) {

@@ -47,6 +47,10 @@ public class SlateInventory {
         return columns;
     }
 
+    public MenuInventory getMenuInventory() {
+        return menuInventory;
+    }
+
     public void open(ServerPlayer player) {
         SlateInventory oldInv = manager.getInventory(player);
         if (oldInv != null) {
@@ -67,6 +71,8 @@ public class SlateInventory {
             player.openMenu(menuProvider);
 
             manager.setInventory(player, this);
+            manager.cancelUpdateTask(player);
+            manager.scheduleUpdateTask(player, this);
         } catch (Exception e) {
             e.printStackTrace();
             close(player);
@@ -74,9 +80,12 @@ public class SlateInventory {
     }
 
     public void close(ServerPlayer player) {
+        menuInventory.close();
+
         manager.setInventory(player, null);
         player.closeContainer();
         manager.setContents(player, null);
+        manager.cancelUpdateTask(player);
     }
 
     public boolean checkBounds(int row, int col) {

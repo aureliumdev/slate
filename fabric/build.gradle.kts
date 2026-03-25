@@ -31,13 +31,16 @@ dependencies {
     api(project(":common"))
     shade(project(":common"))
     implementation("net.kyori:adventure-text-serializer-legacy:4.25.0")
+    /*
     include("net.kyori:adventure-api:4.25.0")
     include("net.kyori:examination-api:1.3.0")
     include("net.kyori:examination-string:1.3.0")
     include("net.kyori:adventure-key:4.25.0")
     include("net.kyori:adventure-text-serializer-legacy:4.25.0")
     include("net.kyori:adventure-text-minimessage:4.16.0")
-    modImplementation(include("net.kyori:adventure-platform-fabric:6.8.0")!!)
+    include("net.kyori:adventure-platform-fabric:6.8.0")
+     */
+    modImplementation("net.kyori:adventure-platform-fabric:6.8.0")
     modImplementation("net.fabricmc:fabric-loader:0.18.2")
     modImplementation("net.fabricmc.fabric-api:fabric-api:0.139.4+1.21.11")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
@@ -60,6 +63,8 @@ tasks {
 
         dependencies {
             exclude(dependency("net.kyori:.*"))
+            exclude(dependency("org.spongepowered:configurate.*"))
+            exclude(dependency("io.leangen.geantyref:.*"))
         }
     }
 

@@ -6,6 +6,7 @@ import dev.aurelium.slate.fabric.event.InventoryEvents;
 import dev.aurelium.slate.fabric.event.InventoryEvents.*;
 import dev.aurelium.slate.fabric.inv.content.InventoryContents;
 import dev.aurelium.slate.inv.content.SlotPos;
+import dev.aurelium.slate.scheduler.WrappedTask;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
@@ -18,17 +19,20 @@ import org.jspecify.annotations.Nullable;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 public class InventoryManager {
 
     private final Slate slate;
     private final Map<UUID, SlateInventory> inventories;
     private final Map<UUID, InventoryContents> contents;
+    private final Map<UUID, WrappedTask> updateTasks;
 
     public InventoryManager(Slate slate) {
         this.slate = slate;
         this.inventories = new ConcurrentHashMap<>();
         this.contents = new ConcurrentHashMap<>();
+        this.updateTasks = new ConcurrentHashMap<>();
         new InvListener();
     }
 
@@ -64,6 +68,23 @@ public class InventoryManager {
 
     public Optional<InventoryContents> getContents(ServerPlayer p) {
         return Optional.ofNullable(this.contents.get(p.getUUID()));
+    }
+
+    public void scheduleUpdateTask(ServerPlayer player, SlateInventory inv) {
+        final InventoryContents inventoryContents = contents.get(player.getUUID());
+
+        if (inventoryContents != null) {
+            WrappedTask task = slate.getScheduler().timerSync(() -> inv.getMenuInventory().update(player, inventoryContents),
+                    50, 50, TimeUnit.MILLISECONDS);
+            this.updateTasks.put(player.getUUID(), task);
+        }
+    }
+
+    protected void cancelUpdateTask(ServerPlayer p) {
+        if (updateTasks.containsKey(p.getUUID())) {
+            this.updateTasks.get(p.getUUID()).cancel();
+            this.updateTasks.remove(p.getUUID());
+        }
     }
 
     protected void setContents(ServerPlayer p, InventoryContents contents) {

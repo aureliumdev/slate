@@ -27,12 +27,23 @@ public class VersionUtil {
 
     public static int getMinorVersion(String version) {
         try {
-            if (version != null) {
+            if (version == null) {
+                return FALLBACK_MINOR_VERSION;
+            }
+            if (version.startsWith("1.")) {
                 int lastDot = version.lastIndexOf('.');
                 if (version.indexOf('.') != lastDot) {
                     return Integer.parseInt(version.substring(lastDot + 1));
                 } else {
                     return 0;
+                }
+            } else {
+                int firstDot = version.indexOf(".");
+                int lastDot = version.lastIndexOf(".");
+                if (firstDot != lastDot) {
+                    return Integer.parseInt(version.substring(firstDot + 1, lastDot));
+                } else {
+                    return Integer.parseInt(version.substring(firstDot + 1));
                 }
             }
         } catch (Exception ignored) {
@@ -42,18 +53,23 @@ public class VersionUtil {
 
     public static int getMajorVersion(String version) {
         try {
-            if (version != null) {
+            if (version == null) {
+                return FALLBACK_MAJOR_VERSION;
+            }
+            int firstDot = version.indexOf(".");
+            if (version.startsWith("1.")) {
                 int lastDot = version.lastIndexOf(".");
-                int firstDot = version.indexOf(".");
-                if (firstDot != lastDot) {
+                if (firstDot != lastDot) { // x.x.x format
                     String sub = version.substring(firstDot + 1, lastDot);
                     if (sub.contains(".")) { // In case there are extra dots at the end
                         sub = sub.substring(0, sub.indexOf("."));
                     }
                     return Integer.parseInt(sub);
-                } else {
+                } else { // x.x format
                     return Integer.parseInt(version.substring(firstDot + 1));
                 }
+            } else { // New version system since 26.1
+                return Integer.parseInt(version.substring(0, firstDot));
             }
         } catch (Exception ignored) {
         }

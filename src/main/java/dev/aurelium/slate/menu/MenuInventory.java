@@ -501,12 +501,16 @@ public class MenuInventory implements InventoryProvider {
         clickTriggers.add(ClickTrigger.ANY);
         switch (clickType) {
             case LEFT:
-            case SHIFT_LEFT:
                 clickTriggers.add(ClickTrigger.LEFT);
                 break;
+            case SHIFT_LEFT:
+                clickTriggers.add(ClickTrigger.SHIFT_LEFT);
+                break;
             case RIGHT:
-            case SHIFT_RIGHT:
                 clickTriggers.add(ClickTrigger.RIGHT);
+                break;
+            case SHIFT_RIGHT:
+                clickTriggers.add(ClickTrigger.SHIFT_RIGHT);
                 break;
             case MIDDLE:
                 clickTriggers.add(ClickTrigger.MIDDLE);

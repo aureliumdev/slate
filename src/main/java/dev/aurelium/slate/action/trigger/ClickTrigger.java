@@ -4,7 +4,9 @@ public enum ClickTrigger {
 
     ANY("on_click"),
     LEFT("on_left_click"),
+    SHIFT_LEFT("on_shift_left_click"),
     RIGHT("on_right_click"),
+    SHIFT_RIGHT("on_shift_right_click"),
     MIDDLE("on_middle_click"),
     DROP("on_drop");
 

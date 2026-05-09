@@ -247,9 +247,17 @@ public class MenuLoader {
         ConfigurationNode optionSection = config.node("options");
         for (Object keyObj : optionSection.childrenMap().keySet()) {
             String key = (String) keyObj;
-            if (optionSection.node(keyObj).isMap()) continue;
-            Object value = optionSection.node(key).raw();
-            options.put(key, value);
+            if (optionSection.node(keyObj).isMap()) {
+                Map<Object, ? extends ConfigurationNode> objectMap = optionSection.node(key).childrenMap();
+                Map<String, Object> valueMap = new HashMap<>();
+                objectMap.forEach((mapKeyObj, node) -> {
+                    valueMap.put(String.valueOf(mapKeyObj), node.raw());
+                });
+                options.put(key, valueMap);
+            } else {
+                Object value = optionSection.node(key).raw();
+                options.put(key, value);
+            }
         }
         return options;
     }

@@ -31,6 +31,7 @@ import dev.aurelium.slate.util.TextUtil;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -119,6 +120,10 @@ public class MenuInventory implements InventoryProvider {
         if (!toUpdate.contains(activeItem)) {
             toUpdate.add(activeItem);
         }
+    }
+
+    public void clearContents() {
+        contents.fill(ClickableItem.empty(new ItemStack(Material.AIR)));
     }
 
     @Override

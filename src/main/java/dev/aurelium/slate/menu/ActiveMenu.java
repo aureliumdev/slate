@@ -10,10 +10,12 @@ import dev.aurelium.slate.position.PositionProvider;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NullUnmarked;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@NullUnmarked
 public class ActiveMenu {
 
     private final MenuInventory menuInventory;
@@ -96,6 +98,22 @@ public class ActiveMenu {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    public <T> T propertyElsePut(String name, T fallback) {
+        try {
+            Object o = menuInventory.getProperties().get(name);
+            if (o != null) {
+                return (T) o;
+            }
+            setProperty(name, fallback);
+            return fallback;
+        } catch (ClassCastException e) {
+            e.printStackTrace();
+            setProperty(name, fallback);
+            return fallback;
+        }
+    }
+
     /**
      * Gets a property from the menu's properties with the given name.
      *
@@ -153,6 +171,10 @@ public class ActiveMenu {
         }
     }
 
+    public boolean hasProperty(String name) {
+        return menuInventory.getProperties().containsKey(name);
+    }
+
     /**
      * Reloads the menu for the player as if it was reopened.
      */
@@ -172,6 +194,10 @@ public class ActiveMenu {
             activeItem.setCooldown(cooldown);
             menuInventory.setToUpdate(activeItem);
         }
+    }
+
+    public void clearContents() {
+        menuInventory.clearContents();
     }
 
     /**

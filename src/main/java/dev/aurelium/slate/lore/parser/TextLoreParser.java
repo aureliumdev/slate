@@ -15,7 +15,7 @@ public class TextLoreParser implements LoreParser {
         // Raw String value
         if (!config.isMap()) {
             String text = config.getString("");
-            return new TextLore(text, new LoreStyles(new HashMap<>()), false, 0, false, "");
+            return new TextLore(text, new LoreStyles(new HashMap<>()), false, 0, false, "", true);
         }
         // Map values
         String text = config.node("text").getString("");
@@ -24,8 +24,9 @@ public class TextLoreParser implements LoreParser {
         int wrapStyle = config.node("wrap_style").getInt(0);
         boolean smartWrap = config.node("smart_wrap").getBoolean(true);
         String wrapIndent = config.node("wrap_indent").getString("");
+        boolean indentFirst = config.node("indent_first").getBoolean(true);
 
-        return new TextLore(text, styles, wrap, wrapStyle, smartWrap, wrapIndent);
+        return new TextLore(text, styles, wrap, wrapStyle, smartWrap, wrapIndent, indentFirst);
     }
 
     private LoreStyles parseStyles(ConfigurationNode config) {

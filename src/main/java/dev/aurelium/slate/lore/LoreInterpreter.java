@@ -188,7 +188,8 @@ public class LoreInterpreter {
             if (textLore.isSmartWrap()) { // Detect tags inside string to use as insertions
                 String firstStyle = textLore.getStyles().getStyle(textLore.getWrapStyle());
                 AtomicReference<String> prevStyle = new AtomicReference<>(firstStyle);
-                text = firstStyle + textLore.getWrapIndent() + LoreUtil.wrapLore(text, slate.getLoreWrappingWidth(), textLore, (line, lore) -> {
+                String firstIndent = textLore.isIndentFirst() ? textLore.getWrapIndent() : "";
+                text = firstStyle + firstIndent + LoreUtil.wrapLore(text, slate.getLoreWrappingWidth(), textLore, (line, lore) -> {
                     // Find the last style tag in the line
                     int lastStartIndex = 0;
                     int tagLength = 0;

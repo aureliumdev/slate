@@ -12,8 +12,9 @@ public class TextLore extends LoreLine {
     private final int wrapStyle;
     private final boolean smartWrap;
     private final String wrapIndent;
+    private final boolean indentFirst;
 
-    public TextLore(String text, LoreStyles styles, boolean wrap, int wrapStyle, boolean smartWrap, String wrapIndent) {
+    public TextLore(String text, LoreStyles styles, boolean wrap, int wrapStyle, boolean smartWrap, String wrapIndent, boolean indentFirst) {
         super(LoreType.TEXT);
         this.text = text;
         this.styles = styles;
@@ -21,6 +22,7 @@ public class TextLore extends LoreLine {
         this.wrapStyle = wrapStyle;
         this.smartWrap = smartWrap;
         this.wrapIndent = wrapIndent;
+        this.indentFirst = indentFirst;
     }
 
     public String getText() {
@@ -45,5 +47,9 @@ public class TextLore extends LoreLine {
 
     public String getWrapIndent() {
         return wrapIndent;
+    }
+
+    public boolean isIndentFirst() {
+        return indentFirst;
     }
 }

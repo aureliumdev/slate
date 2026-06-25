@@ -8,7 +8,9 @@ public enum ClickTrigger {
     RIGHT("on_right_click"),
     SHIFT_RIGHT("on_shift_right_click"),
     MIDDLE("on_middle_click"),
-    DROP("on_drop");
+    DROP("on_drop"),
+    BASIC("on_basic_click"),
+    SHIFT("on_shift_click");
 
     private final String identifier;
 
